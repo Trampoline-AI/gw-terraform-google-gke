@@ -10,12 +10,6 @@ terraform {
   required_version = ">= 0.12.26"
 }
 
-locals {
-  workload_identity_config = !var.enable_workload_identity ? [] : var.identity_namespace == null ? [{
-    identity_namespace = "${var.project}.svc.id.goog" }] : [{ identity_namespace = var.identity_namespace
-  }]
-}
-
 # ---------------------------------------------------------------------------------------------------------------------
 # Create the GKE Cluster
 # We want to make a cluster with no node pools, and manage them all with the fine-grained google_container_node_pool resource
@@ -35,6 +29,10 @@ resource "google_container_cluster" "cluster" {
   logging_service    = var.logging_service
   monitoring_service = var.monitoring_service
   min_master_version = local.kubernetes_version
+
+  release_channel {
+    channel = var.release_channel
+  }
 
   # Whether to enable legacy Attribute-Based Access Control (ABAC). RBAC has significant security advantages over ABAC.
   enable_legacy_abac = var.enable_legacy_abac
@@ -105,8 +103,9 @@ resource "google_container_cluster" "cluster" {
   }
 
   master_auth {
-    username = var.basic_auth_username
-    password = var.basic_auth_password
+    client_certificate_config {
+      issue_client_certificate = var.enable_client_certificate_authentication
+    }
   }
 
   dynamic "master_authorized_networks_config" {
@@ -156,14 +155,6 @@ resource "google_container_cluster" "cluster" {
     content {
       state    = "ENCRYPTED"
       key_name = database_encryption.value
-    }
-  }
-
-  dynamic "workload_identity_config" {
-    for_each = local.workload_identity_config
-
-    content {
-      identity_namespace = workload_identity_config.value.identity_namespace
     }
   }
 
