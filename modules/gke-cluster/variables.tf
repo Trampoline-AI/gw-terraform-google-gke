@@ -221,3 +221,9 @@ variable "release_channel" {
   type        = string
   default     = "UNSPECIFIED"
 }
+
+variable "enable_shielded_nodes" {
+  description = "Whether to enable Shielded Nodes features on all nodes in this cluster"
+  type        = bool
+  default     = false
+}
