@@ -68,6 +68,12 @@ variable "horizontal_pod_autoscaling" {
   default     = true
 }
 
+variable "enable_dns_cache" {
+  description = "Whether to enable the DNS cache addon"
+  type        = bool
+  default     = false
+}
+
 variable "http_load_balancing" {
   description = "Whether to enable the http (L7) load balancing addon"
   type        = bool
